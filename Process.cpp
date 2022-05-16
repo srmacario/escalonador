@@ -1,10 +1,12 @@
 class Process{
     private:
         int id, burst, io_count, default_burst, default_io_burst, current_quantum;
-        bool jump = false;
+
+        //change_queue variable will define if process needs to change queue
+        bool change_queue = false;
     public:
         Process(int new_id = 0, int new_burst = 0, int new_io_count = 0) : 
-            id(new_id), burst(new_burst), io_count(new_io_count), current_quantum(0), jump(false){}
+            id(new_id), burst(new_burst), io_count(new_io_count), current_quantum(0), change_queue(false){}
         
         void set_default_burst(int new_burst){
             this->default_burst = new_burst;
@@ -46,12 +48,12 @@ class Process{
             return this->id;
         }
 
-        void set_jump(bool new_jump){
-            this->jump = new_jump;
+        void set_change_queue(bool new_change_queue){
+            this->change_queue = new_change_queue;
         }
 
-        bool get_jump(){
-            return this->jump;
+        bool get_change_queue(){
+            return this->change_queue;
         }
 
         int get_current_quantum(){

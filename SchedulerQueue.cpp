@@ -46,29 +46,48 @@ class SchedulerQueue{
         
         //function executes next process, if is a round robin, call its specific function
         int execute_process(int io_limit){
+            //degenerate case
             if(process_queue.empty()) return 0;
+
+            int time_elapsed;
+            
+            //round robin queue
             if(is_fcfs == false) {
-                int quantum_left = std :: min(quantum, process_queue.front().get_current_quantum());
+                //quantum left for that process to execute
+                int quantum_left = process_queue.front().get_current_quantum();
+
+                //check if time limit to execute will be bounded by io_limit or quantum
+                //io_limit exists and bounds execution
                 if(io_limit && io_limit < quantum_left){
-                    process_queue.front().set_jump(false);
-                    int time_elapsed = execute_time_limit_process(io_limit);
+                    //process still has quantum left, cannot change queue
+                    process_queue.front().set_change_queue(false);
+                    time_elapsed = execute_time_limit_process(io_limit);
                     process_queue.front().set_current_quantum(quantum_left - time_elapsed);
                     return time_elapsed;
                 }
-                else{
-                    int time_elapsed = execute_time_limit_process(quantum_left);
-                    if(process_queue.front().get_burst() != 0) process_queue.front().set_jump(true);
-                    else process_queue.front().set_jump(false);
-                    return time_elapsed;
-                }
-            }
-            process_queue.front().set_jump(false);
+                
+                //quantum bounds execution
+                time_elapsed = execute_time_limit_process(quantum_left);
 
+                //check if process is finished, otherwise it will need to change queue
+                if(process_queue.front().get_burst() != 0) process_queue.front().set_change_queue(true);
+                else process_queue.front().set_change_queue(false);
+                return time_elapsed;
+            }
+
+            //normal queue
+            process_queue.front().set_change_queue(false);
+
+            //execute queue bounded by io
             if(io_limit) return execute_time_limit_process(io_limit);
 
-            int current_burst = process_queue.front().get_burst();
+            //from this point, process may never change queue
+            //time elapsed will be equal to current_burst
+            //process executes: set its remaining burst to 0
+
+            time_elapsed = process_queue.front().get_burst();
             process_queue.front().set_burst(0);
-            return current_burst;
+            return time_elapsed;
         }
 
 };
