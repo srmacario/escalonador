@@ -9,6 +9,8 @@ int main(){
     int current_time = 0;
     Scheduler sc;
     
+    
+
     //add process
     Process p = Process(0, 17, 3);
     p.set_default_burst(17);
