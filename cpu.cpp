@@ -45,7 +45,7 @@ void print_history(int scheduler_time, vector<Data> history){
         }
         cout << "P" << history[i].id << ": " << history[i].start << " " << history[i].end << "\n";
     }
-    if(history.back().end != scheduler_time){
+    if(history.size() && history.back().end != scheduler_time){
         cout << "--: " << history.back().end << " " << scheduler_time << "\n";
     }
     cout << "\n";
@@ -65,8 +65,9 @@ int main(){
     //process
     int t = 0;
     while(sc.schedule_is_up()){
-        t = sc.schedule_process(); 
-        if(t == 0) t = sc.execute_io();
+        t = sc.schedule_process();
+        //check if some process was executed
+        if(t == -1) t = sc.execute_io();
         sc.set_current_time(sc.get_current_time() + t);
     }
     cout << "CPU History:\n";

@@ -46,16 +46,18 @@ class Scheduler{
         int schedule_process(){
             for(int i = 0; i < 3; i++){
                 if(queues[i].size()){
-                    //execute process and capture time elapsed
+                    //get io_limit: a variable that tells in how much time IO will complete and send a process to queue
                     int io_limit = 0;
                     if(IOScheduler.size()) io_limit = IOScheduler.peek_process().get_burst();
+
+                    //execute process and capture time elapsed
                     int time_elapsed = queues[i].execute_process(io_limit);
 
                     //save cpu burst history
                     Process current_process = queues[i].peek_process();
                     cpu_history.push_back({current_process.get_id(), current_time, current_time + time_elapsed});
 
-                    //use time elapsed to execute possible io burst
+                    //use time elapsed to execute possible IO burst
                     execute_last_io(time_elapsed);
 
                     //check if process needs to change_queue
@@ -76,7 +78,8 @@ class Scheduler{
                     return time_elapsed;
                 }
             }
-            return 0;
+            //code meaning nothing was executed
+            return -1;
         }
 
         void execute_last_io(int time_limit){
