@@ -37,7 +37,7 @@ class SchedulerQueue{
             this->process_queue.pop();
         }
 
-        //function executes nex process, having a time_limit to execute it
+        //function executes next process, having a time_limit to execute it
         int execute_time_limit_process(int time_limit){
             int current_burst = process_queue.front().get_burst();
             process_queue.front().set_burst(std::max(0, current_burst - time_limit));
@@ -54,34 +54,30 @@ class SchedulerQueue{
             //round robin queue
             if(is_fcfs == false) {
                 //quantum left for that process to execute
-                int quantum_left = process_queue.front().get_current_quantum();
+                int time_limit = process_queue.front().get_current_quantum();
 
-                //check if time limit to execute will be bounded by io_limit or quantum
-                //io_limit exists and bounds execution
-                if(io_limit && io_limit < quantum_left){
-                    //process still has quantum left, cannot change queue
-                    process_queue.front().set_change_queue(false);
-                    time_elapsed = execute_time_limit_process(io_limit);
-                    process_queue.front().set_current_quantum(quantum_left - time_elapsed);
-                    return time_elapsed;
-                }
-                
-                //quantum bounds execution
-                time_elapsed = execute_time_limit_process(quantum_left);
+                //check if there is an IO limit bound and update time limit  
+                if(io_limit) time_limit = std :: min(time_limit, io_limit);
 
-                //check if process is finished, otherwise it will need to change queue
-                if(process_queue.front().get_burst() != 0) process_queue.front().set_change_queue(true);
+                //execute process with time limit bounded 
+                time_elapsed = execute_time_limit_process(time_limit);
+
+                //update quantum from process
+                process_queue.front().set_current_quantum(std::max(0, process_queue.front().get_current_quantum() - time_elapsed));
+
+                //if process is not finished and quantum has finished, it should change queue, otherwise it should not
+                if(process_queue.front().get_burst() != 0 && process_queue.front().get_current_quantum() == 0) process_queue.front().set_change_queue(true);
                 else process_queue.front().set_change_queue(false);
+  
                 return time_elapsed;
             }
 
-            //normal queue
+            //normal queue is the last one, process should never change queue
             process_queue.front().set_change_queue(false);
 
             //execute queue bounded by io
             if(io_limit) return execute_time_limit_process(io_limit);
 
-            //from this point, process may never change queue
             //time elapsed will be equal to current_burst
             //process executes: set its remaining burst to 0
 
@@ -91,3 +87,7 @@ class SchedulerQueue{
         }
 
 };
+
+class FCFSQueue : public SchedulerQueue{};
+
+class RoundRobinQueue : public SchedulerQueue{};
